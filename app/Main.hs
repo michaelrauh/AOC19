@@ -1,7 +1,7 @@
 module Main where
 
 import Lib
-import System.IO  
+import System.IO
 import Control.Monad
 
 main :: IO ()
