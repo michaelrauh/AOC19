@@ -1,11 +1,12 @@
 module Main where
 
-import Lib
-import System.IO  
+import Three
+import System.IO
 import Control.Monad
 
 main :: IO ()
 main = do
-  handle <- openFile "input.txt" ReadMode
+  handle <- openFile "inputs/three.txt" ReadMode
   contents <- hGetContents handle
-  putStrLn contents
+  let answer = parse contents
+  print answer
