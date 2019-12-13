@@ -8,5 +8,5 @@ main :: IO ()
 main = do
   handle <- openFile "inputs/three.txt" ReadMode
   contents <- hGetContents handle
-  let answer = parse contents
+  let answer = findAnswer contents
   print answer

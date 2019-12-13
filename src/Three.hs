@@ -4,10 +4,10 @@ import Data.List
 
 data WireDirection = U Integer | L Integer | D Integer | R Integer deriving Show
 data WireLocation = Location Integer Integer deriving (Eq, Show)
-data VisitedLocations = Visited WireLocation [WireLocation] deriving Show
+type VisitedLocations = [WireLocation]
 
 instance Ord WireLocation where
-  compare (Location a b) (Location c d) = compare (a + b) (c + d)
+  compare (Location a b) (Location c d) = compare (abs (a + b)) (abs (c + d))
 
 separateBy :: Eq a => a -> [a] -> [[a]]
 separateBy chr = unfoldr sep where
@@ -28,31 +28,28 @@ parse :: String -> [[WireDirection]]
 parse x = map (map toWireDirections . separateByComma) $ separateByNewline x
 
 navigate :: WireLocation -> WireDirection -> [WireLocation]
-navigate (Location x y) (U m) = fromTupleList $ zip (repeat x) [y..(y + m)]
-navigate (Location x y) (D m) = fromTupleList $ zip (repeat x) [y,y + signum ((-m) - y) .. (-m)]
-navigate (Location x y) (L m) = fromTupleList $ zip [x,x + signum ((-m) - x) .. (-m)] (repeat y)
-navigate (Location x y) (R m) = fromTupleList $ zip [x..(x + m)] (repeat y)
+navigate (Location x y) (U m) = tail $ fromTupleList $ zip (repeat x) [y, (y + 1)..(y + m)]
+navigate (Location x y) (D m) = tail $ fromTupleList $ zip (repeat x) [y, (y - 1)..(y - m)]
+navigate (Location x y) (L m) = tail $ fromTupleList $ zip [x, (x - 1)..(x - m)] (repeat y)
+navigate (Location x y) (R m) = tail $ fromTupleList $ zip [x, (x + 1)..(x + m)] (repeat y)
 
 fromTupleList :: [(Integer, Integer)] -> [WireLocation]
-fromTupleList = map (uncurry Location)
+fromTupleList = map $ uncurry Location
 
 go :: [WireDirection] -> VisitedLocations
-go = foldr foldingFunction (Visited  (Location 0 0) [])
+go = foldl foldingFunction [Location 0 0]
 
-foldingFunction :: WireDirection -> VisitedLocations -> VisitedLocations
-foldingFunction wireDirection (Visited currentLocation alreadyVisited) =
-  let newLocations = navigate currentLocation wireDirection
-  in Visited (last newLocations) (alreadyVisited ++ newLocations)
+foldingFunction :: VisitedLocations -> WireDirection -> VisitedLocations
+foldingFunction alreadyVisited wireDirection =
+  let newLocations = navigate (last alreadyVisited) wireDirection
+   in alreadyVisited ++ newLocations
 
 drawDiagrams :: [[WireDirection]] -> [VisitedLocations]
 drawDiagrams = map go
 
 findOverlaps :: [VisitedLocations] -> [WireLocation]
 findOverlaps visitedLocationsList = 
-  let allWireLocations = map getAllVisitedLocations visitedLocationsList
-      allUniques = map nub allWireLocations
-      flatUniques = concat allUniques
-      grouped = group flatUniques
+  let grouped = group $ sort $ concat visitedLocationsList
       answers = filter (\x -> length x > 1) grouped
       finals = map head answers
   in finals
@@ -63,8 +60,7 @@ findNearestToOrigin = minimum
 findAnswer :: String -> Integer
 findAnswer = toManhattanDistance . findNearestToOrigin . findOverlaps . drawDiagrams . parse
 
-toManhattanDistance :: WireLocation -> Integer
-toManhattanDistance (Location x y) = x + y 
+allAnswers = findOverlaps . drawDiagrams . parse
 
-getAllVisitedLocations :: VisitedLocations -> [WireLocation]
-getAllVisitedLocations (Visited l a) = a
+toManhattanDistance :: WireLocation -> Integer
+toManhattanDistance (Location x y) = abs (x + y)
