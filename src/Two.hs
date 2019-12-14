@@ -41,6 +41,10 @@ codeToOp x = if x == 1 then (+) else (*)
 replace :: Int -> a -> [a] -> [a]
 replace pos newVal list = take pos list ++ newVal : drop (pos+1) list
 
+--import Control.Lens
+--(element 3 .~ 9) [1,2,3,4,5]
+-- [1,2,3,9,5]
+
 replaceWithInstruction :: (Int, [Int]) -> (Int, [Int])
 replaceWithInstruction (pos, l) = 
   let op = codeToOp (l !! pos)

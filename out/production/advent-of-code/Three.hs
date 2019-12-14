@@ -7,7 +7,7 @@ data WireLocation = Location Integer Integer deriving (Eq, Show)
 type VisitedLocations = [WireLocation]
 
 instance Ord WireLocation where
-  compare (Location a b) (Location c d) = compare (abs (a + b)) (abs (c + d))
+  compare (Location a b) (Location c d) = compare (abs a + abs b) (abs c + abs d)
 
 separateBy :: Eq a => a -> [a] -> [[a]]
 separateBy chr = unfoldr sep where
@@ -37,7 +37,7 @@ fromTupleList :: [(Integer, Integer)] -> [WireLocation]
 fromTupleList = map $ uncurry Location
 
 go :: [WireDirection] -> VisitedLocations
-go = foldl foldingFunction [Location 0 0]
+go = foldl' foldingFunction [Location 0 0]
 
 foldingFunction :: VisitedLocations -> WireDirection -> VisitedLocations
 foldingFunction alreadyVisited wireDirection =
@@ -48,11 +48,7 @@ drawDiagrams :: [[WireDirection]] -> [VisitedLocations]
 drawDiagrams = map go
 
 findOverlaps :: [VisitedLocations] -> [WireLocation]
-findOverlaps visitedLocationsList = 
-  let grouped = group $ sort $ concat visitedLocationsList
-      answers = filter (\x -> length x > 1) grouped
-      finals = map head answers
-  in finals
+findOverlaps [x, xs] = tail $ x `intersect` xs
 
 findNearestToOrigin :: [WireLocation] -> WireLocation
 findNearestToOrigin = minimum
@@ -63,4 +59,4 @@ findAnswer = toManhattanDistance . findNearestToOrigin . findOverlaps . drawDiag
 allAnswers = findOverlaps . drawDiagrams . parse
 
 toManhattanDistance :: WireLocation -> Integer
-toManhattanDistance (Location x y) = abs (x + y)
+toManhattanDistance (Location x y) = abs x + abs y
